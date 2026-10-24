@@ -114,7 +114,7 @@ export function ChoiceGroup<T extends string | number>({
   );
 }
 
-export function Field({ label, error, id, children, hint }: { label: string; error?: string; id: string; children: ReactNode; hint?: string }) {
+export function Field({ label, error, id, children, hint }: { label: string; error?: string | undefined; id: string; children: ReactNode; hint?: string | undefined }) {
   return (
     <div className="space-y-1.5">
       <label htmlFor={id} className="text-sm font-bold">{label}</label>

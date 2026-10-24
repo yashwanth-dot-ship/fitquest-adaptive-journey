@@ -18,9 +18,9 @@ export function buildDemo(userId: string) {
     const location: Location = ago % 5 === 0 ? "outdoor" : ago % 3 === 0 ? "gym" : "home";
     const checkIn: DailyCheckIn = {
       id: crypto.randomUUID(), userId, date: date.toISOString(),
-      availableMin: ([30, 45, 30, 60, 20] as const)[ago % 5],
-      energy: (["medium", "high", "medium", "low"] as const)[ago % 4],
-      sleep: (["7plus", "5to7", "7plus"] as const)[ago % 3],
+      availableMin: ([30, 45, 30, 60, 20] as const)[ago % 5]!,
+      energy: (["medium", "high", "medium", "low"] as const)[ago % 4]!,
+      sleep: (["7plus", "5to7", "7plus"] as const)[ago % 3]!,
       location, equipment: location === "gym" ? ["dumbbells", "barbell", "machines", "bench"] : profile.equipment,
     };
     const workout = recommendWorkout({ profile, checkIn, history: sessions, now: date });

@@ -20,7 +20,7 @@ export const Route = createFileRoute("/signup")({
 function SignupPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "", confirm: "" });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; confirm?: string; form?: string }>({});
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
