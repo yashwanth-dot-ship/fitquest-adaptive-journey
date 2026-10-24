@@ -95,7 +95,7 @@ export const checkIns = {
     const uid = s.currentUserId!;
     const profile = s.profiles[uid];
     const checkIn: DailyCheckIn = { ...input, id: crypto.randomUUID(), userId: uid, date: new Date().toISOString() };
-    const workout = recommendWorkout({ profile, checkIn, history: s.sessions.filter((x) => x.userId === uid) });
+    const workout = recommendWorkout({ profile: profile!, checkIn, history: s.sessions.filter((x) => x.userId === uid) });
     set({ checkIns: [...s.checkIns, checkIn], todaysWorkout: { ...s.todaysWorkout, [uid]: workout } });
     return workout;
   },

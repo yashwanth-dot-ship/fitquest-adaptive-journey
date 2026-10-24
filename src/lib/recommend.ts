@@ -138,9 +138,9 @@ export function recommendWorkout({ profile, checkIn, history, now = new Date() }
   const usedPrimary = new Set<string>();
   for (const e of ranked) {
     if (chosen.length >= count) break;
-    if (usedPrimary.has(e.muscles[0]) && ranked.length > count) continue;
+    if (usedPrimary.has(e.muscles[0]!) && ranked.length > count) continue;
     chosen.push(e);
-    usedPrimary.add(e.muscles[0]);
+    usedPrimary.add(e.muscles[0]!);
   }
   for (const e of ranked) {
     if (chosen.length >= count) break;

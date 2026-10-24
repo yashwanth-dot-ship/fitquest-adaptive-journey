@@ -25,7 +25,7 @@ function ForgotPage() {
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const r = emailSchema.safeParse(email);
-    if (!r.success) return setError(r.error.issues[0].message);
+    if (!r.success) return setError(r.error.issues[0]?.message);
     auth.requestReset(r.data);
     setSent(true);
   };
