@@ -1,348 +1,87 @@
-# Fitquest Adaptive Journey
-
-Build a modern, production-quality fitness web application called "FitQuest".
-
-IMPORTANT:
-
-This is NOT a generic workout tracker and NOT just an AI chatbot.
-
-The core idea is an adaptive fitness journey platform that creates a workout recommendation based on the user's real-life constraints for that particular day.
-
-TARGET USERS:
-
-College students and young adults who want to improve their fitness but have limited time, equipment, budget, and inconsistent schedules.
-
-CORE DIFFERENTIATOR:
-
-Instead of forcing users to follow a rigid workout plan, FitQuest asks the user about their current situation and adapts today's workout accordingly.
-
-For example:
-
-- Fitness goal
-
-- Fitness experience
-
-- Available time today
-
-- Energy level
-
-- Sleep duration
-
-- Location (gym/home/outdoor)
-
-- Available equipment
-
-- Previous workout
-
-- Recent workout history
-
-The system should use these inputs to recommend an appropriate workout session.
-
-DESIGN:
-
-Create a premium, modern fitness SaaS interface.
-
-Avoid the typical generic "fitness app" look.
-
-The UI should feel clean, professional, motivating and suitable for a real startup product.
-
-Use:
-
-- Responsive design
-
-- Mobile-first thinking
-
-- Clean typography
-
-- Modern cards
-
-- Clear information hierarchy
-
-- Smooth but subtle animations
-
-- Accessible buttons and forms
-
-- Professional dashboard
-
-- Light/dark theme support if practical
-
-MAIN PAGES:
-
-1. LANDING PAGE
-
-- FitQuest branding
-
-- Hero section
-
-- Explain the "adaptive fitness" concept
-
-- CTA: Start Your Fitness Journey
-
-- How it works
-
-- Key features
-
-- Progress/analytics preview
-
-- Footer
-
-2. AUTHENTICATION
-
-- Sign up
-
-- Login
-
-- Forgot password
-
-- Basic form validation
-
-3. ONBOARDING
-
-Ask the user:
-
-- Name
-
-- Age
-
-- Fitness experience
-
-- Primary goal
-
-  - Muscle gain
-
-  - Fat loss
-
-  - General fitness
-
-  - Strength
-
-  - Endurance
-
-- Available workout days
-
-- Typical workout duration
-
-- Preferred workout location
-
-- Available equipment
-
-Do NOT ask for unnecessary sensitive information.
-
-4. DASHBOARD
-
-Show:
-
-- Today's adaptive workout
-
-- Current streak
-
-- Weekly workout count
-
-- Recent progress
-
-- Goal
-
-- Quick check-in button
-
-- Recent workouts
-
-5. DAILY CHECK-IN
-
-Create a simple flow:
-
-"How are you today?"
-
-Inputs:
-
-- Available time: 20 / 30 / 45 / 60 / 90 minutes
-
-- Energy: Low / Medium / High
-
-- Sleep: <5 / 5-7 / 7+ hours
-
-- Location: Gym / Home / Outdoor
-
-- Equipment available
-
-- Optional notes
-
-After submission, show a "Today's Recommendation" screen.
-
-6. TODAY'S WORKOUT
-
-Display:
-
-- Workout title
-
-- Estimated duration
-
-- Difficulty
-
-- Target muscle groups
-
-- Exercises
-
-- Sets
-
-- Reps
-
-- Rest time
-
-- Exercise instructions
-
-- Start Workout button
-
-Also show a short explanation:
-
-"Why this workout?"
-
-For example:
-
-"Your available time is 30 minutes and your recent training history shows that you trained chest yesterday, so today's session focuses on lower body."
-
-This explanation should be clearly presented as an app-generated recommendation, not medical advice.
-
-7. WORKOUT SESSION
-
-Allow the user to:
-
-- Mark exercises complete
-
-- Record weight
-
-- Record reps
-
-- Record sets
-
-- Add notes
-
-- Finish workout
-
-8. PROGRESS DASHBOARD
-
-Show:
-
-- Workout frequency
-
-- Weekly/monthly consistency
-
-- Workout volume
-
-- Personal records
-
-- Goal progress
-
-- Streak
-
-- Recent activity
-
-Use charts where useful, but don't overload the page.
-
-9. WORKOUT HISTORY
-
-Allow users to:
-
-- View previous workouts
-
-- Open workout details
-
-- Filter by date/type
-
-- See completed exercises
-
-10. PROFILE / SETTINGS
-
-Include:
-
-- Personal fitness preferences
-
-- Goal
-
-- Equipment
-
-- Workout preferences
-
-- Account settings
-
-- Theme
-
-- Logout
-
-IMPORTANT PRODUCT RULES:
-
-- Do not create fake AI claims.
-
-- Do not claim medical diagnosis or medical recommendations.
-
-- Do not make extreme weight-loss or health claims.
-
-- The app should present fitness recommendations as general wellness guidance.
-
-- Avoid unnecessary calorie/medical calculations in the first version.
-
-DATA MODEL CONCEPT:
-
-Prepare the frontend architecture so it can later connect to:
-
-User
-
-Profile
-
-FitnessGoal
-
-Exercise
-
-Workout
-
-WorkoutExercise
-
-WorkoutSession
-
-WorkoutLog
-
-DailyCheckIn
-
-ProgressMetric
-
-Do not hard-code the architecture in a way that prevents a real backend/database from being connected later.
-
-TECHNICAL DIRECTION:
-
-For the prototype, use a clean component-based frontend architecture.
-
-Use React with TypeScript if supported.
-
-Keep components reusable.
-
-Keep business logic separated from UI components.
-
-Use mock data only where necessary for the prototype.
-
-IMPORTANT:
-
-Do NOT try to implement the entire production backend in this first generation.
-
-First create a polished frontend prototype and clear application structure.
-
-The final result should look like a serious portfolio/startup project, not a tutorial project.
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/e70a6df3-74f0-5727-9c36-0a7e25a381c3).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+# 🏋️ FitQuest — Adaptive Fitness Journey
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+
+An intelligent, constraint-based workout recommendation and progress tracking web application engineered for college students and busy young adults.
+
+Unlike rigid fitness apps that enforce static routine calendars, **FitQuest** captures real-time daily constraints (sleep, energy, available time, location, and equipment) to prescribe a safe, optimal, and achievable workout on the fly.
+
+---
+
+## 🌐 Live Demo & Preview
+
+- **Live Application:** [https://your-project.vercel.app](https://your-project.vercel.app) *(Replace with your Vercel URL)*
+- **Demo Mode:** Click **"Explore with a demo account"** on the login screen to test the full application instantly with 3 weeks of pre-loaded workout history.
+
+---
+
+## 📌 Problem Statement
+
+Traditional fitness apps suffer from high drop-off rates because they force users into rigid, predetermined schedules. For college students and working professionals, real-world constraints fluctuate daily:
+- Irregular sleep cycles during exam weeks or project deadlines.
+- Fluctuating energy levels.
+- Variable time windows (sometimes 20 minutes between classes, sometimes 60 minutes).
+- Inconsistent access to equipment (dorm room vs. college gym vs. home).
+
+When users miss a workout in a rigid plan, they feel defeated and quit. **FitQuest solves this by adapting the workout to the user's current reality instead of demanding perfection.**
+
+---
+
+## ✨ Key Features
+
+### 1. 🎯 Dynamic Constraint-Based Engine
+- Daily 30-second check-in captures:
+  - **Available Duration:** 20, 30, 45, 60, or 90 minutes.
+  - **Energy Level:** Low, Medium, High.
+  - **Sleep Duration:** <5 hours, 5–7 hours, 7+ hours.
+  - **Workout Location:** Home, Gym, or Outdoor.
+  - **Available Equipment:** Bodyweight, Dumbbells, Bands, Pull-up Bar, Barbell, Machines.
+- Computes intensity, volume, and exercise selection via a deterministic heuristic scoring engine.
+- Generates a transparent **"Why this workout?"** rationale explaining the science behind each selection.
+
+### 2. 📱 Interactive Workout Session
+- Step-by-step exercise execution guide with target muscle groups and instructions.
+- Real-time set logging: tracks completed sets, reps performed, weight lifted (kg/lbs), and timed exercises.
+- Live progress bar tracking completion percentage.
+
+### 3. 📊 Analytics & Progress Dashboard
+- **Streak Calculation:** Forgiving streak algorithm that respects biological recovery days.
+- **Weekly Consistency:** Visual bar chart tracking workouts per week over an 8-week window.
+- **28-Day Consistency Heatmap:** Visual calendar matrix showing workout frequency.
+- **Personal Records (PRs):** Automatic tracking of maximum weight lifted per exercise.
+
+### 4. 🎨 Design System
+- High-contrast, typography-driven athletic poster aesthetic.
+- Full responsive design built mobile-first for smartphone use in the gym.
+- Accessible form controls, high-legibility badges, and smooth state transitions.
+
+---
+
+## 🏗️ System Architecture
+
+```text
+┌────────────────────────────────────────────────────────┐
+│                   PRESENTATION LAYER                   │
+│  React 19 + TypeScript  |  Tailwind CSS v4  |  Lucide  │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│                    APPLICATION LOGIC                   │
+│  ┌───────────────────────┐   ┌───────────────────────┐ │
+│  │ Recommendation Engine │   │   Analytics Engine    │ │
+│  │ (src/lib/recommend.ts)│   │ (src/lib/analytics.ts)│ │
+│  └───────────────────────┘   └───────────────────────┘ │
+└───────────────────────────┬────────────────────────────┘
+                            │
+                            ▼
+┌────────────────────────────────────────────────────────┐
+│                  DATA PERSISTENCE                      │
+│   Unified Client Store (src/lib/store.ts)              │
+│   - LocalStorage synchronization (fitquest:v1)         │
+│   - Service-oriented layer (ready for cloud database)  │
+└────────────────────────────────────────────────────────┘
