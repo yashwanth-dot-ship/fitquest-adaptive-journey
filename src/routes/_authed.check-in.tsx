@@ -32,9 +32,11 @@ function CheckInPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmed = notes.trim();
     checkIns.submit({
       availableMin: availableMin as 20 | 30 | 45 | 60 | 90,
-      energy, sleep, location, equipment: equipment as never, notes: notes.trim() || undefined,
+      energy, sleep, location, equipment: equipment as never,
+      ...(trimmed ? { notes: trimmed } : {}),
     });
     toast.success("Today's workout is ready");
     navigate({ to: "/workout" });
