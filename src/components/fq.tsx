@@ -51,7 +51,7 @@ export function Tag({ tone = "lime", className, ...p }: HTMLAttributes<HTMLSpanE
   return <span className={cn("inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide", tones[tone], className)} {...p} />;
 }
 
-export function PageHeader({ eyebrow, title, children }: { eyebrow?: string; title: string; children?: ReactNode }) {
+export function PageHeader({ eyebrow, title, children }: { eyebrow?: string | undefined; title: string; children?: ReactNode }) {
   return (
     <div className="mb-8 flex flex-wrap items-end justify-between gap-4 rise">
       <div>
@@ -86,7 +86,7 @@ export function ChoiceGroup<T extends string | number>({
   label, options, value, onChange, multi, cols = "flex flex-wrap gap-2", error,
 }: {
   label: string; options: { value: T; label: string; hint?: string }[]; value: T | T[];
-  onChange: (v: T | T[]) => void; multi?: boolean; cols?: string; error?: string;
+  onChange: (v: T | T[]) => void; multi?: boolean; cols?: string; error?: string | undefined;
 }) {
   const arr = Array.isArray(value) ? value : [value];
   return (
@@ -135,7 +135,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
 ));
 Textarea.displayName = "Textarea";
 
-export function StatCard({ tone, label, value, unit, note }: { tone: Tone; label: string; value: ReactNode; unit?: string; note?: string }) {
+export function StatCard({ tone, label, value, unit, note }: { tone: Tone; label: string; value: ReactNode; unit?: string; note?: string | undefined }) {
   return (
     <Panel tone={tone}>
       <Eyebrow>{label}</Eyebrow>
