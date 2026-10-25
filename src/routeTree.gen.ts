@@ -19,7 +19,9 @@ import { Route as AuthedCheckInRouteImport } from './routes/_authed.check-in'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed.dashboard'
 import { Route as AuthedHistoryRouteImport } from './routes/_authed.history'
 import { Route as AuthedProgressRouteImport } from './routes/_authed.progress'
+import { Route as AuthedSessionRouteImport } from './routes/_authed.session'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed.settings'
+import { Route as AuthedWorkoutRouteImport } from './routes/_authed.workout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,9 +72,19 @@ const AuthedProgressRoute = AuthedProgressRouteImport.update({
   path: '/progress',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedSessionRoute = AuthedSessionRouteImport.update({
+  id: '/session',
+  path: '/session',
+  getParentRoute: () => AuthedRoute,
+} as any)
 const AuthedSettingsRoute = AuthedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedWorkoutRoute = AuthedWorkoutRouteImport.update({
+  id: '/workout',
+  path: '/workout',
   getParentRoute: () => AuthedRoute,
 } as any)
 
@@ -86,7 +98,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRoute
   '/history': typeof AuthedHistoryRoute
   '/progress': typeof AuthedProgressRoute
+  '/session': typeof AuthedSessionRoute
   '/settings': typeof AuthedSettingsRoute
+  '/workout': typeof AuthedWorkoutRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -98,7 +112,9 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRoute
   '/history': typeof AuthedHistoryRoute
   '/progress': typeof AuthedProgressRoute
+  '/session': typeof AuthedSessionRoute
   '/settings': typeof AuthedSettingsRoute
+  '/workout': typeof AuthedWorkoutRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -112,7 +128,9 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/history': typeof AuthedHistoryRoute
   '/_authed/progress': typeof AuthedProgressRoute
+  '/_authed/session': typeof AuthedSessionRoute
   '/_authed/settings': typeof AuthedSettingsRoute
+  '/_authed/workout': typeof AuthedWorkoutRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -126,7 +144,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/progress'
+    | '/session'
     | '/settings'
+    | '/workout'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -138,7 +158,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/history'
     | '/progress'
+    | '/session'
     | '/settings'
+    | '/workout'
   id:
     | '__root__'
     | '/'
@@ -151,7 +173,9 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/history'
     | '/_authed/progress'
+    | '/_authed/session'
     | '/_authed/settings'
+    | '/_authed/workout'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -235,11 +259,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedProgressRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/session': {
+      id: '/_authed/session'
+      path: '/session'
+      fullPath: '/session'
+      preLoaderRoute: typeof AuthedSessionRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/settings': {
       id: '/_authed/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthedSettingsRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/workout': {
+      id: '/_authed/workout'
+      path: '/workout'
+      fullPath: '/workout'
+      preLoaderRoute: typeof AuthedWorkoutRouteImport
       parentRoute: typeof AuthedRoute
     }
   }
@@ -250,7 +288,9 @@ interface AuthedRouteChildren {
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedHistoryRoute: typeof AuthedHistoryRoute
   AuthedProgressRoute: typeof AuthedProgressRoute
+  AuthedSessionRoute: typeof AuthedSessionRoute
   AuthedSettingsRoute: typeof AuthedSettingsRoute
+  AuthedWorkoutRoute: typeof AuthedWorkoutRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
@@ -258,7 +298,9 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedHistoryRoute: AuthedHistoryRoute,
   AuthedProgressRoute: AuthedProgressRoute,
+  AuthedSessionRoute: AuthedSessionRoute,
   AuthedSettingsRoute: AuthedSettingsRoute,
+  AuthedWorkoutRoute: AuthedWorkoutRoute,
 }
 
 const AuthedRouteWithChildren =
