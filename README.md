@@ -14,7 +14,7 @@ Unlike rigid fitness apps that enforce static routine calendars, **FitQuest** ca
 
 ## 🌐 Live Demo & Preview
 
-- **Live Application:** [https://your-project.vercel.app](https://your-project.vercel.app) *(Replace with your Vercel URL)*
+- **Live Application:** [https://your-project.vercel.app](https://fitquest-adaptive-journey.vercel.app/) 
 - **Demo Mode:** Click **"Explore with a demo account"** on the login screen to test the full application instantly with 3 weeks of pre-loaded workout history.
 
 ---
