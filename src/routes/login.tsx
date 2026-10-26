@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/auth-layout";
 import { Button, Field, Input } from "@/components/fq";
@@ -11,7 +12,7 @@ import { lovable } from "@/integrations/lovable";
 import { fieldErrors, loginSchema } from "@/lib/validation";
 
 export const Route = createFileRoute("/login")({
-  validateSearch: (raw: Record<string, unknown>) => ({ redirect: typeof raw.redirect === "string" ? raw.redirect : undefined }),
+  validateSearch: z.object({ redirect: z.string().optional() }),
   head: () => ({
     meta: [
       { title: "Log in — FitQuest" },
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { search } = Route.useSearch();
+  const { redirect } = Route.useSearch();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
@@ -41,7 +42,7 @@ function LoginPage() {
     const { data: { session } } = await supabase.auth.getSession();
     const uid = session?.user.id;
     if (!uid) return;
-    go(safeRedirect(search.redirect) ?? ((await hasProfile(uid)) ? "/dashboard" : "/onboarding"));
+    go(safeRedirect(redirect) ?? ((await hasProfile(uid)) ? "/dashboard" : "/onboarding"));
   };
 
   // Arriving back from Google (or already signed in) — carry on to the right screen.

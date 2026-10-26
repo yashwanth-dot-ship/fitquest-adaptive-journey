@@ -33,7 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setState({ user: session?.user ?? null, ready: true });
       if (event === "SIGNED_OUT") void router.invalidate();
       // Arriving from a password-reset link: go straight to the new-password form.
-      if (event === "SIGNED_IN" && session?.user.recovery_type) void router.navigate({ to: "/reset-password" });
+      const recovering = (session?.user as { recovery_type?: string } | undefined)?.recovery_type;
+      if (event === "SIGNED_IN" && recovering) void router.navigate({ to: "/reset-password" });
     }).data.subscription;
 
     return () => {

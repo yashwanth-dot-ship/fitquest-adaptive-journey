@@ -2,12 +2,16 @@
 // Row Level Security is enforced in the database, so a user can only ever read
 // or write their own rows — the app never has to trust the client.
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { recommendWorkout } from "./recommend";
 import { buildSampleData } from "./demo";
 import type {
   DailyCheckIn, Equipment, Energy, Experience, Goal, Location, MuscleGroup,
   Profile, Sleep, Weekday, Workout, WorkoutExercise, WorkoutLog, WorkoutSession,
 } from "./types";
+
+/** Domain objects stored in JSONB columns. */
+const asJson = (v: unknown) => v as Json;
 
 // ---------- error + id helpers ----------
 function fail(error: { message: string } | null): void {
@@ -184,7 +188,7 @@ export async function submitCheckIn(
     duration_min: workout.durationMin,
     difficulty: workout.difficulty,
     muscles: workout.muscles,
-    exercises: workout.exercises,
+    exercises: asJson(workout.exercises),
     reasons: workout.reasons,
   }).select().single();
   fail(wErr);
@@ -204,15 +208,21 @@ export async function startSession(workout: Workout): Promise<WorkoutSession> {
   const userId = await currentUserId();
   const logs = buildLogs(workout);
   const { data, error } = await supabase.from("workout_sessions").insert({
-    user_id: userId, workout_id: workout.id, logs,
+    user_id: userId, workout_id: workout.id, logs: asJson(logs),
   }).select().single();
   fail(error);
   const row = data as SessionRow;
   return { id: row.id, userId, workout, startedAt: row.started_at, logs };
 }
 
-export async function updateSession(id: string, patch: { logs?: WorkoutLog[]; notes?: string | null }): Promise<void> {
-  const { error } = await supabase.from("workout_sessions").update(patch).eq("id", id);
+export async function updateSession(
+  id: string,
+  patch: { logs?: WorkoutLog[]; notes?: string | null },
+): Promise<void> {
+  const update: { logs?: Json; notes?: string | null } = {};
+  if (patch.logs) update.logs = asJson(patch.logs);
+  if (patch.notes !== undefined) update.notes = patch.notes;
+  const { error } = await supabase.from("workout_sessions").update(update).eq("id", id);
   fail(error);
 }
 
@@ -250,13 +260,13 @@ export async function insertSampleHistory(): Promise<number> {
   const { error: e2 } = await supabase.from("workouts").insert(workouts.map((w) => ({
     id: w.id, user_id: userId, check_in_id: w.checkInId, title: w.title, type: w.type,
     duration_min: w.durationMin, difficulty: w.difficulty, muscles: w.muscles,
-    exercises: w.exercises, reasons: w.reasons, created_at: w.createdAt,
+    exercises: asJson(w.exercises), reasons: w.reasons, created_at: w.createdAt,
   })));
   fail(e2);
 
   const { error: e3 } = await supabase.from("workout_sessions").insert(sessions.map((s) => ({
     id: s.id, user_id: userId, workout_id: s.workout.id, started_at: s.startedAt,
-    finished_at: s.finishedAt ?? null, logs: s.logs, notes: s.notes ?? null,
+    finished_at: s.finishedAt ?? null, logs: asJson(s.logs), notes: s.notes ?? null,
   })));
   fail(e3);
 
@@ -269,12 +279,16 @@ export async function exportAllData(): Promise<string> {
   const [profile, checkIns, workouts, sessions] = await Promise.all([
     fetchProfile(userId), listCheckIns(), listWorkouts(), listSessions(),
   ]);
+  const { data } = await supabase.auth.getUser();
   return JSON.stringify({
     app: "FitQuest",
     exportedAt: new Date().toISOString(),
-    account: { email: (await supabase.auth.getUser()).data.user?.email ?? null },
+    account: { email: data.user?.email ?? null },
     profile, checkIns, workouts,
-    sessions: sessions.map((s) => ({ ...s, workout: undefined })),
+    sessions: sessions.map((s) => ({
+      id: s.id, startedAt: s.startedAt, finishedAt: s.finishedAt ?? null,
+      notes: s.notes ?? null, workoutId: s.workout.id, logs: s.logs,
+    })),
   }, null, 2);
 }
 
