@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { EmptyState, PageHeader, Panel, Tag, buttonVariants } from "@/components/fq";
 import { completedSets, sessionVolume } from "@/lib/analytics";
 import { WORKOUT_TYPES } from "@/lib/labels";
-import { useMySessions } from "@/lib/use-session";
+import { useFitData } from "@/lib/use-session";
 
 export const Route = createFileRoute("/_authed/history")({
   head: () => ({
@@ -17,7 +17,8 @@ export const Route = createFileRoute("/_authed/history")({
 });
 
 function HistoryPage() {
-  const sessions = useMySessions();
+  const { data } = useFitData();
+  const sessions = data?.sessions ?? [];
   const done = sessions.filter((s) => s.finishedAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
   if (done.length === 0)

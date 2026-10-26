@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { EmptyState, PageHeader, Panel, StatCard, Tag } from "@/components/fq";
 import { last28Days, monthConsistency, personalRecords, streak, thisWeekCount, weeklySeries } from "@/lib/analytics";
 import { exerciseById } from "@/lib/exercises";
-import { useCurrentUser, useMySessions } from "@/lib/use-session";
+import { useFitData } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/progress")({
@@ -18,8 +18,9 @@ export const Route = createFileRoute("/_authed/progress")({
 });
 
 function ProgressPage() {
-  const { profile } = useCurrentUser();
-  const sessions = useMySessions();
+  const { data } = useFitData();
+  const profile = data?.profile ?? null;
+  const sessions = data?.sessions ?? [];
   const finishedCount = sessions.filter((s) => s.finishedAt).length;
 
   if (finishedCount === 0)
