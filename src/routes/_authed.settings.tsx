@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, LogOut, Moon, Sun, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button, ChoiceGroup, Field, Input, PageHeader, Panel } from "@/components/fq";
 import { DURATIONS, EQUIPMENT, EXPERIENCE, GOALS, LOCATIONS, WEEKDAYS } from "@/lib/labels";
-import { auth, profiles } from "@/lib/store";
+import { auth, exportState, importState, profiles } from "@/lib/store";
 import type { Experience, Goal, Location, Weekday } from "@/lib/types";
 import { useCurrentUser } from "@/lib/use-session";
 
@@ -32,8 +32,31 @@ function SettingsPage() {
   const [location, setLocation] = useState<Location>(profile?.preferredLocation ?? "home");
   const [equipment, setEquipment] = useState<string[]>(profile?.equipment ?? ["none"]);
   const [errors, setErrors] = useState<{ name?: string; age?: string; days?: string }>({});
+  const fileInput = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
+
+  const exportBackup = () => {
+    const blob = new Blob([exportState()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fitquest-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Backup downloaded");
+  };
+
+  const importBackup = async (file: File) => {
+    const text = await file.text();
+    const res = importState(text);
+    if (res.ok) {
+      toast.success(`Backup restored — ${res.accounts} account${res.accounts === 1 ? "" : "s"} loaded`);
+      navigate({ to: "/login", replace: true });
+    } else {
+      toast.error(res.error);
+    }
+  };
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +131,32 @@ function SettingsPage() {
             <Button variant={profile.theme === "dark" ? "lime" : "outline"} onClick={() => setTheme("dark")}>
               <Moon className="size-4" aria-hidden /> Dark
             </Button>
+          </div>
+        </Panel>
+
+        <Panel>
+          <h2 className="poster text-2xl">Data backup</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your data lives in this browser. Download a backup file to keep it safe or move it to another device — then import it here to restore everything.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="outline" onClick={exportBackup}>
+              <Download className="size-4" aria-hidden /> Export backup
+            </Button>
+            <Button variant="outline" onClick={() => fileInput.current?.click()}>
+              <Upload className="size-4" aria-hidden /> Import backup
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void importBackup(f);
+                e.target.value = "";
+              }}
+            />
           </div>
         </Panel>
 

@@ -146,6 +146,34 @@ export const sessions = {
   },
 };
 
+// ---------- Backup (export / import) ----------
+// Exports and imports the entire on-device state so users can move their data
+// between browsers or keep a backup before clearing site data.
+export function exportState(): string {
+  load();
+  return JSON.stringify(state, null, 2);
+}
+
+export type ImportResult = { ok: true; accounts: number } | { ok: false; error: string };
+
+export function importState(json: string): ImportResult {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(json);
+  } catch {
+    return { ok: false, error: "That file is not valid JSON." };
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed) || !("accounts" in parsed)) {
+    return { ok: false, error: "That file is not a FitQuest backup." };
+  }
+  const next = { ...empty, ...(parsed as AppState) };
+  const accounts = Object.keys(next.accounts).length;
+  state = next;
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { /* ignore */ }
+  listeners.forEach((l) => l());
+  return { ok: true, accounts };
+}
+
 // ---------- Demo data ----------
 export async function signInDemo() {
   const { buildDemo } = await import("./demo");

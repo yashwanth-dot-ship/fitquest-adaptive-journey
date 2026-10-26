@@ -1,39 +1,43 @@
 import { QueryClient } from "@tanstack/react-query";
-import { createMemoryHistory, createRouter, RouterProvider } from "@tanstack/react-router";
-import { cleanup, render, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { createMemoryHistory, createRouter } from "@tanstack/react-router";
+import { describe, expect, it, vi } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
+// The route tree is resolved headlessly via router.load(). Rendering through
+// RouterProvider paints TanStack Start's document shell into the test DOM,
+// which asserts nothing useful — so router state is the source of truth here.
+function loadRouter(path: string) {
   const queryClient = new QueryClient();
-  const router = createRouter({
+  return createRouter({
     routeTree,
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return render(<RouterProvider router={router} />);
 }
 
-afterEach(() => {
-  cleanup();
-  vi.restoreAllMocks();
-});
-
-// Assert only that the router mounts and paints, never page content:
-// routes are rewritten as the app is built and this must keep passing.
 describe("App routing", () => {
-  it("renders the index route", async () => {
-    const { container } = renderAt("/");
+  it("resolves the index route", async () => {
+    const router = loadRouter("/");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    await router.load();
+    expect(router.state.location.pathname).toBe("/");
+    expect(router.state.matches.map((m) => m.routeId)).toEqual(["__root__", "/"]);
   });
 
-  it("renders the not-found route", async () => {
+  it("routes unknown paths to the not-found handler", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const { container } = renderAt("/this-route-does-not-exist");
+    const router = loadRouter("/this-route-does-not-exist");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    // An unknown path may surface the not-found error through load(); either
+    // way only the root layout should have matched.
+    try {
+      await router.load();
+    } catch {
+      // not-found surfaced as an error — expected for an unknown path.
+    }
+    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
+    expect(router.state.matches.map((m) => m.routeId)).toEqual(["__root__"]);
   });
 });
