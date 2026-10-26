@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
-import { LogOut, Moon, Sun } from "lucide-react";
+import { useRef, useState } from "react";
+import { Download, LogOut, Moon, Sun, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button, ChoiceGroup, Field, Input, PageHeader, Panel } from "@/components/fq";
 import { DURATIONS, EQUIPMENT, EXPERIENCE, GOALS, LOCATIONS, WEEKDAYS } from "@/lib/labels";
-import { auth, profiles } from "@/lib/store";
+import { auth, exportState, importState, profiles } from "@/lib/store";
 import type { Experience, Goal, Location, Weekday } from "@/lib/types";
 import { useCurrentUser } from "@/lib/use-session";
 
