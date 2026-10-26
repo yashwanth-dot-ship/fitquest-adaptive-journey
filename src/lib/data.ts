@@ -115,7 +115,7 @@ export async function listSessions(): Promise<WorkoutSession[]> {
     .order("started_at", { ascending: false })
     .limit(300);
   fail(error);
-  return (data ?? []) as unknown as SessionJoin[] | null ?? [];
+  return ((data ?? []) as unknown as SessionJoin[]).map(toSession);
 }
 
 export async function listWorkouts(): Promise<Workout[]> {
