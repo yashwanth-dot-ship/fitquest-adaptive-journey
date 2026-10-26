@@ -135,6 +135,32 @@ function SettingsPage() {
         </Panel>
 
         <Panel>
+          <h2 className="poster text-2xl">Data backup</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your data lives in this browser. Download a backup file to keep it safe or move it to another device — then import it here to restore everything.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Button variant="outline" onClick={exportBackup}>
+              <Download className="size-4" aria-hidden /> Export backup
+            </Button>
+            <Button variant="outline" onClick={() => fileInput.current?.click()}>
+              <Upload className="size-4" aria-hidden /> Import backup
+            </Button>
+            <input
+              ref={fileInput}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void importBackup(f);
+                e.target.value = "";
+              }}
+            />
+          </div>
+        </Panel>
+
+        <Panel>
           <h2 className="poster text-2xl">Account</h2>
           <p className="mt-2 text-sm text-muted-foreground">Signed in as {user?.email}</p>
           <Button variant="ghost" className="mt-4"
