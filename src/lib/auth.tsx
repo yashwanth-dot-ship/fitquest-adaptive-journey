@@ -32,6 +32,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.clear();
       setState({ user: session?.user ?? null, ready: true });
       if (event === "SIGNED_OUT") void router.invalidate();
+      // Arriving from a password-reset link: go straight to the new-password form.
+      if (event === "SIGNED_IN" && session?.user.recovery_type) void router.navigate({ to: "/reset-password" });
     }).data.subscription;
 
     return () => {
