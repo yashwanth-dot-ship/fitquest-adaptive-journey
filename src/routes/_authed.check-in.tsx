@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Zap } from "lucide-react";
 import { toast } from "sonner";
 import { Button, ChoiceGroup, Disclaimer, Field, PageHeader, Panel, Textarea } from "@/components/fq";
+import { submitCheckIn } from "@/lib/data";
 import { DURATIONS, ENERGY, EQUIPMENT, LOCATIONS, SLEEP } from "@/lib/labels";
-import { checkIns } from "@/lib/store";
-import type { Energy, Location, Sleep } from "@/lib/types";
-import { useCurrentUser } from "@/lib/use-session";
+import { useFitData, useRefresh } from "@/lib/use-session";
+import type { Energy, Equipment, Location, Sleep } from "@/lib/types";
 
 export const Route = createFileRoute("/_authed/check-in")({
   head: () => ({
@@ -22,24 +22,34 @@ export const Route = createFileRoute("/_authed/check-in")({
 
 function CheckInPage() {
   const navigate = useNavigate();
-  const { profile } = useCurrentUser();
+  const refresh = useRefresh();
+  const { data } = useFitData();
+  const profile = data?.profile ?? null;
   const [availableMin, setAvailableMin] = useState<number>(profile?.typicalDuration ?? 30);
   const [energy, setEnergy] = useState<Energy>("medium");
   const [sleep, setSleep] = useState<Sleep>("5to7");
   const [location, setLocation] = useState<Location>(profile?.preferredLocation ?? "home");
   const [equipment, setEquipment] = useState<string[]>(profile?.equipment ?? ["none"]);
   const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = notes.trim();
-    checkIns.submit({
-      availableMin: availableMin as 20 | 30 | 45 | 60 | 90,
-      energy, sleep, location, equipment: equipment as never,
-      ...(trimmed ? { notes: trimmed } : {}),
-    });
-    toast.success("Today's workout is ready");
-    navigate({ to: "/workout" });
+    setBusy(true);
+    try {
+      await submitCheckIn({
+        availableMin: availableMin as 20 | 30 | 45 | 60 | 90,
+        energy, sleep, location, equipment: equipment as Equipment[],
+        ...(trimmed ? { notes: trimmed } : {}),
+      });
+      await refresh();
+      toast.success("Today's workout is ready");
+      navigate({ to: "/workout" });
+    } catch (err) {
+      setBusy(false);
+      toast.error((err as Error).message);
+    }
   };
 
   return (
@@ -67,8 +77,8 @@ function CheckInPage() {
           </Field>
         </Panel>
         <div className="space-y-3">
-          <Button type="submit" variant="coral" size="lg" className="w-full sm:w-auto">
-            <Zap className="size-5" aria-hidden /> Build today's workout
+          <Button type="submit" variant="coral" size="lg" className="w-full sm:w-auto" disabled={busy}>
+            <Zap className="size-5" aria-hidden /> {busy ? "Building your workout…" : "Build today's workout"}
           </Button>
           <Disclaimer />
         </div>

@@ -1,17 +1,21 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
 import { Button, ChoiceGroup, Field, Input, Logo, Panel } from "@/components/fq";
+import { useAuth } from "@/lib/auth";
+import { hasProfile, insertSampleHistory, saveProfile } from "@/lib/data";
 import { DURATIONS, EQUIPMENT, EXPERIENCE, GOALS, LOCATIONS, WEEKDAYS } from "@/lib/labels";
-import { getState, profiles } from "@/lib/store";
-import type { Experience, Goal, Location, Weekday } from "@/lib/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useRefresh } from "@/lib/use-session";
+import type { Equipment, Experience, Goal, Location, Weekday } from "@/lib/types";
 
 export const Route = createFileRoute("/onboarding")({
   ssr: false,
-  beforeLoad: () => {
-    const s = getState();
-    if (!s.currentUserId) throw redirect({ to: "/login", search: { redirect: "/onboarding" } });
-    if (s.profiles[s.currentUserId]) throw redirect({ to: "/dashboard" });
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw redirect({ to: "/login", search: { redirect: "/onboarding" } });
+    if (await hasProfile(session.user.id)) throw redirect({ to: "/dashboard" });
   },
   head: () => ({
     meta: [
@@ -28,7 +32,9 @@ const STEPS = ["About you", "Your week", "Your setup"] as const;
 
 function OnboardingPage() {
   const navigate = useNavigate();
-  const uid = getState().currentUserId!;
+  const refresh = useRefresh();
+  const { user } = useAuth();
+  const uid = user!.id;
   const [step, setStep] = useState(0);
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
@@ -38,7 +44,9 @@ function OnboardingPage() {
   const [duration, setDuration] = useState<number>(30);
   const [location, setLocation] = useState<Location>("home");
   const [equipment, setEquipment] = useState<string[]>(["none"]);
+  const [sample, setSample] = useState<string>("empty");
   const [errors, setErrors] = useState<{ name?: string; age?: string; days?: string }>({});
+  const [busy, setBusy] = useState(false);
 
   const next = () => {
     if (step === 0) {
@@ -57,20 +65,28 @@ function OnboardingPage() {
     setStep(step + 1);
   };
 
-  const finish = () => {
-    profiles.save({
-      userId: uid,
-      name: name.trim(),
-      age: Number(age),
-      experience,
-      goal,
-      workoutDays: days,
-      typicalDuration: duration,
-      preferredLocation: location,
-      equipment: equipment as never,
-      theme: "light",
-    });
-    navigate({ to: "/dashboard" });
+  const finish = async () => {
+    setBusy(true);
+    try {
+      await saveProfile({
+        userId: uid,
+        name: name.trim(),
+        age: Number(age),
+        experience,
+        goal,
+        workoutDays: days,
+        typicalDuration: duration,
+        preferredLocation: location,
+        equipment: equipment as Equipment[],
+        theme: "light",
+      });
+      if (sample === "sample") await insertSampleHistory();
+      await refresh();
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setBusy(false);
+      toast.error((err as Error).message);
+    }
   };
 
   return (
@@ -126,6 +142,12 @@ function OnboardingPage() {
               options={Object.entries(LOCATIONS).map(([value, label]) => ({ value, label }))} />
             <ChoiceGroup label="Equipment you have" value={equipment} multi onChange={(v) => setEquipment(v as string[])}
               options={Object.entries(EQUIPMENT).map(([value, label]) => ({ value, label }))} />
+            <ChoiceGroup label="Want to see the charts filled in?" value={sample}
+              onChange={(v) => setSample(v as string)}
+              options={[
+                { value: "empty", label: "Start with nothing", hint: "Add your own workouts" },
+                { value: "sample", label: "Add 3 weeks of sample workouts", hint: "Clearly marked, you can delete them" },
+              ]} />
           </>
         )}
       </Panel>
@@ -135,12 +157,12 @@ function OnboardingPage() {
           <ArrowLeft className="size-4" aria-hidden /> Back
         </Button>
         {step < STEPS.length - 1 ? (
-          <Button variant="lime" onClick={next}>
+          <Button variant="lime" onClick={next} disabled={busy}>
             Continue <ArrowRight className="size-4" aria-hidden />
           </Button>
         ) : (
-          <Button variant="coral" size="lg" onClick={finish}>
-            Start my journey
+          <Button variant="coral" size="lg" onClick={finish} disabled={busy}>
+            {busy ? "Setting up…" : "Start my journey"}
           </Button>
         )}
       </div>

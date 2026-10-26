@@ -3,8 +3,7 @@ import { ArrowRight, Flame, Play } from "lucide-react";
 import { Button, PageHeader, Panel, StatCard, Tag, buttonVariants } from "@/components/fq";
 import { last28Days, streak, thisWeekCount } from "@/lib/analytics";
 import { WORKOUT_TYPES } from "@/lib/labels";
-import { useAppState } from "@/lib/store";
-import { useCurrentUser, useMySessions } from "@/lib/use-session";
+import { useFitData, useToday } from "@/lib/use-session";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/dashboard")({
@@ -20,13 +19,10 @@ export const Route = createFileRoute("/_authed/dashboard")({
 });
 
 function DashboardPage() {
-  const { uid, profile } = useCurrentUser();
-  const sessions = useMySessions();
-  const todaysWorkout = useAppState((s) => (uid ? s.todaysWorkout[uid] : undefined));
-  const activeSession = useAppState((s) => {
-    const id = uid ? s.activeSessionId[uid] : undefined;
-    return id ? s.sessions.find((x) => x.id === id && !x.finishedAt) : undefined;
-  });
+  const { data } = useFitData();
+  const { activeSession, todaysWorkout } = useToday();
+  const profile = data?.profile ?? null;
+  const sessions = data?.sessions ?? [];
 
   const days = last28Days(sessions);
   const week = days.slice(-7);
@@ -107,7 +103,8 @@ function DashboardPage() {
 }
 
 function RecentSessions() {
-  const sessions = useMySessions();
+  const { data } = useFitData();
+  const sessions = data?.sessions ?? [];
   const recent = sessions.filter((s) => s.finishedAt).sort((a, b) => b.startedAt.localeCompare(a.startedAt)).slice(0, 3);
   if (recent.length === 0)
     return <p className="mt-4 text-muted-foreground">No sessions yet — your finished workouts will show up here.</p>;
