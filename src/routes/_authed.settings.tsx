@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { Download, LogOut, Moon, Sun, Upload } from "lucide-react";
+import { Download, LogOut, Moon, Sun, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button, ChoiceGroup, Field, Input, PageHeader, Panel } from "@/components/fq";
+import { useAuth } from "@/lib/auth";
+import { deleteAllData, exportAllData, saveProfile } from "@/lib/data";
 import { DURATIONS, EQUIPMENT, EXPERIENCE, GOALS, LOCATIONS, WEEKDAYS } from "@/lib/labels";
-import { auth, exportState, importState, profiles } from "@/lib/store";
-import type { Experience, Goal, Location, Weekday } from "@/lib/types";
-import { useCurrentUser } from "@/lib/use-session";
+import { supabase } from "@/integrations/supabase/client";
+import { useFitData, useRefresh } from "@/lib/use-session";
+import type { Equipment, Experience, Goal, Location, Weekday } from "@/lib/types";
 
 export const Route = createFileRoute("/_authed/settings")({
   head: () => ({
@@ -22,7 +24,10 @@ export const Route = createFileRoute("/_authed/settings")({
 
 function SettingsPage() {
   const navigate = useNavigate();
-  const { user, profile } = useCurrentUser();
+  const refresh = useRefresh();
+  const { user } = useAuth();
+  const { data } = useFitData();
+  const profile = data?.profile ?? null;
   const [name, setName] = useState(profile?.name ?? "");
   const [age, setAge] = useState(String(profile?.age ?? ""));
   const [experience, setExperience] = useState<Experience>(profile?.experience ?? "beginner");
@@ -32,33 +37,12 @@ function SettingsPage() {
   const [location, setLocation] = useState<Location>(profile?.preferredLocation ?? "home");
   const [equipment, setEquipment] = useState<string[]>(profile?.equipment ?? ["none"]);
   const [errors, setErrors] = useState<{ name?: string; age?: string; days?: string }>({});
+  const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
 
-  const exportBackup = () => {
-    const blob = new Blob([exportState()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `fitquest-backup-${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Backup downloaded");
-  };
-
-  const importBackup = async (file: File) => {
-    const text = await file.text();
-    const res = importState(text);
-    if (res.ok) {
-      toast.success(`Backup restored — ${res.accounts} account${res.accounts === 1 ? "" : "s"} loaded`);
-      navigate({ to: "/login", replace: true });
-    } else {
-      toast.error(res.error);
-    }
-  };
-
-  const save = (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: typeof errors = {};
     if (!name.trim()) errs.name = "Name is required";
@@ -67,16 +51,61 @@ function SettingsPage() {
     if (days.length === 0) errs.days = "Pick at least one day";
     setErrors(errs);
     if (Object.keys(errs).length) return;
-    profiles.save({
-      ...profile, name: name.trim(), age: a, experience, goal, workoutDays: days,
-      typicalDuration: duration, preferredLocation: location, equipment: equipment as never,
-    });
-    toast.success("Profile saved");
+    setBusy(true);
+    try {
+      await saveProfile({
+        ...profile, name: name.trim(), age: a, experience, goal, workoutDays: days,
+        typicalDuration: duration, preferredLocation: location, equipment: equipment as Equipment[],
+      });
+      await refresh();
+      toast.success("Profile saved");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const setTheme = (theme: "light" | "dark") => {
-    profiles.save({ ...profile, theme });
+  const setTheme = async (theme: "light" | "dark") => {
+    await saveProfile({ ...profile, theme });
+    await refresh();
     toast.success(theme === "dark" ? "Dark mode on" : "Light mode on");
+  };
+
+  const exportBackup = async () => {
+    setBusy(true);
+    try {
+      const json = await exportAllData();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fitquest-data-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Your data has been downloaded");
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const erase = async () => {
+    if (!window.confirm("This permanently deletes your profile, check-ins, workouts and history. Continue?")) return;
+    setBusy(true);
+    try {
+      await deleteAllData();
+      navigate({ to: "/", replace: true });
+    } catch (err) {
+      setBusy(false);
+      toast.error((err as Error).message);
+    }
+  };
+
+  const logOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login", replace: true });
   };
 
   return (
@@ -118,53 +147,42 @@ function SettingsPage() {
             options={Object.entries(EQUIPMENT).map(([value, label]) => ({ value, label }))} />
         </Panel>
 
-        <Button type="submit" variant="lime" size="lg">Save changes</Button>
+        <Button type="submit" variant="lime" size="lg" disabled={busy}>Save changes</Button>
       </form>
 
       <div className="mt-10 max-w-2xl space-y-6">
         <Panel>
           <h2 className="poster text-2xl">Appearance</h2>
           <div className="mt-4 flex gap-3">
-            <Button variant={profile.theme === "light" ? "lime" : "outline"} onClick={() => setTheme("light")}>
+            <Button variant={profile.theme === "light" ? "lime" : "outline"} onClick={() => void setTheme("light")}>
               <Sun className="size-4" aria-hidden /> Light
             </Button>
-            <Button variant={profile.theme === "dark" ? "lime" : "outline"} onClick={() => setTheme("dark")}>
+            <Button variant={profile.theme === "dark" ? "lime" : "outline"} onClick={() => void setTheme("dark")}>
               <Moon className="size-4" aria-hidden /> Dark
             </Button>
           </div>
         </Panel>
 
         <Panel>
-          <h2 className="poster text-2xl">Data backup</h2>
+          <h2 className="poster text-2xl">Your data</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your data lives in this browser. Download a backup file to keep it safe or move it to another device — then import it here to restore everything.
+            Everything you log is stored in your own account on the FitQuest backend. Download a copy at any time,
+            or delete it permanently — your check-ins, workouts and history go with it.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="outline" onClick={exportBackup}>
-              <Download className="size-4" aria-hidden /> Export backup
+            <Button variant="outline" onClick={() => void exportBackup()} disabled={busy}>
+              <Download className="size-4" aria-hidden /> Download my data
             </Button>
-            <Button variant="outline" onClick={() => fileInput.current?.click()}>
-              <Upload className="size-4" aria-hidden /> Import backup
+            <Button variant="danger" onClick={() => void erase()} disabled={busy}>
+              <Trash2 className="size-4" aria-hidden /> Delete all my data
             </Button>
-            <input
-              ref={fileInput}
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void importBackup(f);
-                e.target.value = "";
-              }}
-            />
           </div>
         </Panel>
 
         <Panel>
           <h2 className="poster text-2xl">Account</h2>
           <p className="mt-2 text-sm text-muted-foreground">Signed in as {user?.email}</p>
-          <Button variant="ghost" className="mt-4"
-            onClick={() => { auth.signOut(); navigate({ to: "/login", replace: true }); }}>
+          <Button variant="ghost" className="mt-4" onClick={() => void logOut()}>
             <LogOut className="size-4" aria-hidden /> Log out
           </Button>
         </Panel>
