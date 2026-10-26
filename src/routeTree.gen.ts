@@ -23,6 +23,7 @@ import { Route as AuthedProgressRouteImport } from './routes/_authed.progress'
 import { Route as AuthedSessionRouteImport } from './routes/_authed.session'
 import { Route as AuthedSettingsRouteImport } from './routes/_authed.settings'
 import { Route as AuthedWorkoutRouteImport } from './routes/_authed.workout'
+import { Route as ApiPublicSeedTestUserRouteImport } from './routes/api/public/seed-test-user'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -93,6 +94,11 @@ const AuthedWorkoutRoute = AuthedWorkoutRouteImport.update({
   path: '/workout',
   getParentRoute: () => AuthedRoute,
 } as any)
+const ApiPublicSeedTestUserRoute = ApiPublicSeedTestUserRouteImport.update({
+  id: '/api/public/seed-test-user',
+  path: '/api/public/seed-test-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/session': typeof AuthedSessionRoute
   '/settings': typeof AuthedSettingsRoute
   '/workout': typeof AuthedWorkoutRoute
+  '/api/public/seed-test-user': typeof ApiPublicSeedTestUserRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/session': typeof AuthedSessionRoute
   '/settings': typeof AuthedSettingsRoute
   '/workout': typeof AuthedWorkoutRoute
+  '/api/public/seed-test-user': typeof ApiPublicSeedTestUserRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_authed/session': typeof AuthedSessionRoute
   '/_authed/settings': typeof AuthedSettingsRoute
   '/_authed/workout': typeof AuthedWorkoutRoute
+  '/api/public/seed-test-user': typeof ApiPublicSeedTestUserRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/session'
     | '/settings'
     | '/workout'
+    | '/api/public/seed-test-user'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -172,6 +182,7 @@ export interface FileRouteTypes {
     | '/session'
     | '/settings'
     | '/workout'
+    | '/api/public/seed-test-user'
   id:
     | '__root__'
     | '/'
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/_authed/session'
     | '/_authed/settings'
     | '/_authed/workout'
+    | '/api/public/seed-test-user'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicSeedTestUserRoute: typeof ApiPublicSeedTestUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -300,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedWorkoutRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/api/public/seed-test-user': {
+      id: '/api/public/seed-test-user'
+      path: '/api/public/seed-test-user'
+      fullPath: '/api/public/seed-test-user'
+      preLoaderRoute: typeof ApiPublicSeedTestUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -334,6 +354,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  ApiPublicSeedTestUserRoute: ApiPublicSeedTestUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
