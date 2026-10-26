@@ -1,9 +1,10 @@
 import { useEffect } from "react";
-import { useAppState } from "@/lib/store";
+import { useFitData } from "@/lib/use-session";
 
 /** Applies the signed-in user's theme preference to <html>. */
 export function ThemeSync() {
-  const theme = useAppState((s) => (s.currentUserId ? s.profiles[s.currentUserId]?.theme : undefined));
+  const { data } = useFitData();
+  const theme = data?.profile?.theme;
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);

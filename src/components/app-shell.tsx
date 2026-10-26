@@ -2,7 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { Activity, CalendarCheck, History, Home, LogOut, Settings, Zap } from "lucide-react";
 import type { ReactNode } from "react";
 import { Logo, buttonVariants } from "./fq";
-import { auth } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -15,6 +15,10 @@ const NAV = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const logOut = async () => {
+    await supabase.auth.signOut();
+    navigate({ to: "/login", replace: true });
+  };
   return (
     <div className="min-h-screen pb-24 md:pb-0">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
@@ -33,7 +37,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Zap className="size-4" aria-hidden /> Quick check-in
             </Link>
             <button aria-label="Log out" className={buttonVariants({ variant: "ghost", size: "icon" })}
-              onClick={() => { auth.signOut(); navigate({ to: "/login", replace: true }); }}>
+              onClick={() => void logOut()}>
               <LogOut className="size-4" />
             </button>
           </div>

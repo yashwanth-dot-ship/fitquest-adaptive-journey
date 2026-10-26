@@ -13,6 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/lib/auth";
 import { ThemeSync } from "@/components/theme-sync";
 
 function NotFoundComponent() {
@@ -120,9 +121,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeSync />
-      <Outlet />
-      <Toaster position="top-center" richColors />
+      <AuthProvider>
+        <ThemeSync />
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

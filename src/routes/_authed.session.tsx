@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { Check, Flag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button, EmptyState, PageHeader, Panel, Tag, buttonVariants } from "@/components/fq";
-import { exerciseById } from "@/lib/exercises";
 import { completedSets } from "@/lib/analytics";
-import { sessions, useAppState } from "@/lib/store";
-import type { WorkoutSession } from "@/lib/types";
-import { useCurrentUser } from "@/lib/use-session";
+import { discardSession, finishSession, updateSession } from "@/lib/data";
+import { exerciseById } from "@/lib/exercises";
+import { useRefresh, useToday } from "@/lib/use-session";
+import type { WorkoutLog } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authed/session")({
@@ -23,13 +24,31 @@ export const Route = createFileRoute("/_authed/session")({
 
 function SessionPage() {
   const navigate = useNavigate();
-  const { uid } = useCurrentUser();
-  const session = useAppState((s) => {
-    const id = uid ? s.activeSessionId[uid] : undefined;
-    return id ? s.sessions.find((x) => x.id === id && !x.finishedAt) : undefined;
-  });
+  const refresh = useRefresh();
+  const { activeSession } = useToday();
+  // Local draft of the set log, saved to the database a moment after each change.
+  const [draft, setDraft] = useState<{ id: string; logs: WorkoutLog[] } | null>(null);
+  const [busy, setBusy] = useState(false);
+  // Once the session is finished or discarded, stop syncing and stop saving —
+  // otherwise a stale draft would be written back over the logged sets.
+  const closed = useRef(false);
 
-  if (!session)
+  useEffect(() => {
+    if (closed.current) return;
+    if (activeSession && draft?.id !== activeSession.id) {
+      setDraft({ id: activeSession.id, logs: activeSession.logs });
+    }
+  }, [activeSession, draft]);
+
+  useEffect(() => {
+    if (!draft || closed.current) return;
+    const t = setTimeout(() => {
+      void updateSession(draft.id, { logs: draft.logs }).catch(() => toast.error("Couldn't save — check your connection"));
+    }, 700);
+    return () => clearTimeout(t);
+  }, [draft]);
+
+  if (!activeSession || !draft)
     return (
       <>
         <PageHeader eyebrow="FitQuest" title="Session" />
@@ -38,35 +57,58 @@ function SessionPage() {
       </>
     );
 
-  const totalSets = session.logs.reduce((t, l) => t + l.sets.length, 0);
-  const doneSets = completedSets(session);
-
-  const patch = (next: WorkoutSession) => sessions.update(session.id, { logs: next.logs });
+  const logs = draft.logs;
+  const totalSets = logs.reduce((t, l) => t + l.sets.length, 0);
+  const doneSets = logs.reduce((t, l) => t + l.sets.filter((x) => x.done).length, 0);
+  const patch = (next: WorkoutLog[]) => setDraft({ id: activeSession.id, logs: next });
 
   const setSet = (exIdx: number, setIdx: number, field: "reps" | "weight" | "done", value: number | boolean) => {
-    const logs = session.logs.map((l, i) =>
-      i !== exIdx ? l : { ...l, sets: l.sets.map((st, j) => (j !== setIdx ? st : { ...st, [field]: value })) });
-    patch({ ...session, logs });
+    patch(logs.map((l, i) =>
+      i !== exIdx ? l : { ...l, sets: l.sets.map((st, j) => (j !== setIdx ? st : { ...st, [field]: value })) }));
   };
 
   const toggleExercise = (exIdx: number) => {
-    const logs = session.logs.map((l, i) => {
+    patch(logs.map((l, i) => {
       if (i !== exIdx) return l;
       const completed = !l.completed;
       return { ...l, completed, sets: l.sets.map((st) => ({ ...st, done: completed ? true : st.done })) };
-    });
-    patch({ ...session, logs });
+    }));
   };
 
-  const finish = () => {
-    sessions.finish(session.id);
-    toast.success("Workout complete — nice work!");
-    navigate({ to: "/dashboard" });
+  const finish = async () => {
+    closed.current = true;
+    setBusy(true);
+    try {
+      await updateSession(activeSession.id, { logs });
+      await finishSession(activeSession.id);
+      setDraft(null);
+      await refresh();
+      toast.success("Workout complete — nice work!");
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setBusy(false);
+      toast.error((err as Error).message);
+    }
+  };
+
+  const discard = async () => {
+    closed.current = true;
+    setBusy(true);
+    try {
+      await discardSession(activeSession.id);
+      setDraft(null);
+      await refresh();
+      toast("Session discarded");
+      navigate({ to: "/dashboard" });
+    } catch (err) {
+      setBusy(false);
+      toast.error((err as Error).message);
+    }
   };
 
   return (
     <>
-      <PageHeader eyebrow="Live session" title={session.workout.title}>
+      <PageHeader eyebrow="Live session" title={activeSession.workout.title}>
         <Tag tone="lime">{doneSets}/{totalSets} sets</Tag>
       </PageHeader>
 
@@ -76,7 +118,7 @@ function SessionPage() {
       </div>
 
       <div className="space-y-4">
-        {session.logs.map((log, exIdx) => {
+        {logs.map((log, exIdx) => {
           const ex = exerciseById(log.exerciseId);
           if (!ex) return null;
           return (
@@ -119,11 +161,10 @@ function SessionPage() {
       </div>
 
       <div className="sticky bottom-20 mt-8 flex flex-wrap gap-3 md:bottom-6">
-        <Button variant="coral" size="lg" onClick={finish}>
+        <Button variant="coral" size="lg" onClick={finish} disabled={busy}>
           <Flag className="size-5" aria-hidden /> Finish workout
         </Button>
-        <Button variant="ghost" size="lg"
-          onClick={() => { sessions.discard(session.id); toast("Session discarded"); navigate({ to: "/dashboard" }); }}>
+        <Button variant="ghost" size="lg" onClick={discard} disabled={busy}>
           <Trash2 className="size-5" aria-hidden /> Discard
         </Button>
       </div>
