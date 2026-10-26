@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Flag, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button, EmptyState, PageHeader, Panel, Tag, buttonVariants } from "@/components/fq";
@@ -29,15 +29,19 @@ function SessionPage() {
   // Local draft of the set log, saved to the database a moment after each change.
   const [draft, setDraft] = useState<{ id: string; logs: WorkoutLog[] } | null>(null);
   const [busy, setBusy] = useState(false);
+  // Once the session is finished or discarded, stop syncing and stop saving —
+  // otherwise a stale draft would be written back over the logged sets.
+  const closed = useRef(false);
 
   useEffect(() => {
+    if (closed.current) return;
     if (activeSession && draft?.id !== activeSession.id) {
       setDraft({ id: activeSession.id, logs: activeSession.logs });
     }
   }, [activeSession, draft]);
 
   useEffect(() => {
-    if (!draft) return;
+    if (!draft || closed.current) return;
     const t = setTimeout(() => {
       void updateSession(draft.id, { logs: draft.logs }).catch(() => toast.error("Couldn't save — check your connection"));
     }, 700);
@@ -72,6 +76,7 @@ function SessionPage() {
   };
 
   const finish = async () => {
+    closed.current = true;
     setBusy(true);
     try {
       await updateSession(activeSession.id, { logs });
@@ -87,6 +92,7 @@ function SessionPage() {
   };
 
   const discard = async () => {
+    closed.current = true;
     setBusy(true);
     try {
       await discardSession(activeSession.id);
