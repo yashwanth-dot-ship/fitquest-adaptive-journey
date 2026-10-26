@@ -5,14 +5,22 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-function renderAt(path: string) {
+// TanStack Start's RouterProvider renders the document shell, so DOM content
+// never lands in the render container. Assert on router state instead: it
+// proves the route tree resolved without depending on page markup.
+function makeRouter(path: string) {
   const queryClient = new QueryClient();
-  const router = createRouter({
+  return createRouter({
     routeTree,
     context: { queryClient },
     history: createMemoryHistory({ initialEntries: [path] }),
   });
-  return render(<RouterProvider router={router} />);
+}
+
+function renderRouter(path: string) {
+  const router = makeRouter(path);
+  render(<RouterProvider router={router} />);
+  return router;
 }
 
 afterEach(() => {
@@ -20,20 +28,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// Assert only that the router mounts and paints, never page content:
-// routes are rewritten as the app is built and this must keep passing.
 describe("App routing", () => {
-  it("renders the index route", async () => {
-    const { container } = renderAt("/");
+  it("resolves the index route", async () => {
+    const router = renderRouter("/");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    await waitFor(() => expect(router.state.status).toBe("ready"));
+    expect(router.state.location.pathname).toBe("/");
+    expect(router.state.matches.some((m) => m.routeId === "/")).toBe(true);
   });
 
-  it("renders the not-found route", async () => {
+  it("routes unknown paths to the not-found handler", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
-    const { container } = renderAt("/this-route-does-not-exist");
+    const router = renderRouter("/this-route-does-not-exist");
 
-    await waitFor(() => expect(container.firstChild).not.toBeNull());
+    await waitFor(() => expect(router.state.status).toBe("ready"));
+    expect(router.state.location.pathname).toBe("/this-route-does-not-exist");
+    // Only the root layout matched — the unknown segment produced a not-found
+    // instead of a concrete route.
+    expect(router.state.matches.every((m) => m.routeId === "__root__")).toBe(true);
   });
 });
