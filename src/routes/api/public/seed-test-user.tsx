@@ -8,8 +8,8 @@ export const Route = createFileRoute("/api/public/seed-test-user")({
       POST: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin.auth.admin.createUser({
-          email: "alex@fitquest-demo.app",
-          password: "K9#vTq!zLm2$wXr7Qp",
+          email: "sam@fitquest-demo.app",
+          password: "Zp4#mLk!9Qw2$XvtR7",
           email_confirm: true,
         });
         if (error) return Response.json({ error: error.message }, { status: 400 });
