@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/seed-test-user")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin.auth.admin.createUser({
           email: "alex@fitquest-demo.app",
-          password: "Demo!2345",
+          password: "K9#vTq!zLm2$wXr7Qp",
           email_confirm: true,
         });
         if (error) return Response.json({ error: error.message }, { status: 400 });
