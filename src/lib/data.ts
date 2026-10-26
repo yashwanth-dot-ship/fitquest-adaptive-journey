@@ -108,6 +108,12 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   return data ? toProfile(data as ProfileRow) : null;
 }
 
+export async function hasProfile(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from("profiles").select("user_id").eq("user_id", userId).maybeSingle();
+  fail(error);
+  return Boolean(data);
+}
+
 export async function listSessions(): Promise<WorkoutSession[]> {
   const { data, error } = await supabase
     .from("workout_sessions")
