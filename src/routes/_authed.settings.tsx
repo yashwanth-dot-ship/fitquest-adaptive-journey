@@ -32,8 +32,31 @@ function SettingsPage() {
   const [location, setLocation] = useState<Location>(profile?.preferredLocation ?? "home");
   const [equipment, setEquipment] = useState<string[]>(profile?.equipment ?? ["none"]);
   const [errors, setErrors] = useState<{ name?: string; age?: string; days?: string }>({});
+  const fileInput = useRef<HTMLInputElement>(null);
 
   if (!profile) return null;
+
+  const exportBackup = () => {
+    const blob = new Blob([exportState()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fitquest-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Backup downloaded");
+  };
+
+  const importBackup = async (file: File) => {
+    const text = await file.text();
+    const res = importState(text);
+    if (res.ok) {
+      toast.success(`Backup restored — ${res.accounts} account${res.accounts === 1 ? "" : "s"} loaded`);
+      navigate({ to: "/login", replace: true });
+    } else {
+      toast.error(res.error);
+    }
+  };
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();
