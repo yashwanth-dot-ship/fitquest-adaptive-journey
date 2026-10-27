@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, Flame, LineChart, MapPin, MessageSquareText, Zap } from "lucide-react";
 import hero from "@/assets/hero.jpg";
+import featuresArt from "@/assets/features.jpg";
 import { Logo, Panel, Tag, buttonVariants, Eyebrow } from "@/components/fq";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +97,11 @@ function Landing() {
       <section id="features" className="rule-b">
         <div className="mx-auto max-w-[76rem] px-6 py-16 lg:py-20">
           <h2 className="poster text-4xl leading-none sm:text-5xl">Why students stick with it</h2>
+          <div className="mt-8 overflow-hidden rounded-[28px] ring-1 ring-border">
+            <img src={featuresArt} alt="Poster illustration of a student training in a dorm, on campus with a backpack, and stretching on a rooftop at dusk"
+              width={1600} height={1008} loading="lazy" className="aspect-[16/9] w-full object-cover" />
+          </div>
+          <p className="mt-4 max-w-[52ch] text-sm text-muted-foreground">One body, every situation — the same session reshapes itself for the dorm, the campus, or the rooftop.</p>
           <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <Panel key={f.t} className="rounded-[20px] bg-background">
