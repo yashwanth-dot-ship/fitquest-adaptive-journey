@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, Flame, LineChart, MapPin, MessageSquareText, Zap } from "lucide-react";
 import hero from "@/assets/hero.jpg";
+import featuresArt from "@/assets/features.jpg";
 import { Logo, Panel, Tag, buttonVariants, Eyebrow } from "@/components/fq";
 import { cn } from "@/lib/utils";
 
